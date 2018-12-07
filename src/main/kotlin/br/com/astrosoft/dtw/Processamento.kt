@@ -96,8 +96,8 @@ class Processamento(val arquvioTXT: String) {
     val partes = linha.split(" +".toRegex())
     dataEntrada = partes.getOrNull(1).toData()
     valorOriginal = partes.getOrNull(4).toValor()
-    quantIndice = partes.getOrNull(6).toValor()
-    valorTaxa = partes.getOrNull(8).toValor()
+    quantIndice = partes.getOrNull(7).toValor()
+    valorTaxa = partes.getOrNull(9).toValor()
   }
 
   private fun processaLinhaItem(linha: String) {

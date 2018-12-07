@@ -1,20 +1,22 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.3.10"
-    application
+  kotlin("jvm") version "1.3.10"
+  application
 }
 
 application {
-    mainClassName = "br.com.astrosoft.dtw.AtivosKt"
+  mainClassName = "br.com.astrosoft.dtw.AtivosKt"
 }
 
 repositories {
-    mavenCentral()
+  mavenCentral()
 }
 
 dependencies {
-    compile(kotlin("stdlib"))
-    compile(kotlin("reflect"))
+  compile(kotlin("stdlib"))
+  compile(kotlin("reflect"))
+
+  compile("org.apache.poi:poi-ooxml:4.0.1")
 }
 

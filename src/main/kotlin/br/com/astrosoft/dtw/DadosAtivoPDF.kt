@@ -1,6 +1,7 @@
 package br.com.astrosoft.dtw
 
 import java.time.LocalDate
+import kotlin.math.roundToInt
 
 val mapMes =
   mapOf("JAN" to "01", "FEV" to "02", "MAR" to "03",
@@ -24,12 +25,18 @@ data class DadosAtivoPDF(
   val valorSaldoResidual: Double?
                         ) {
   val anoMes: String = anoMes()
+  var sequencial: Int = 0
 
   fun anoMes(): String {
     mesAno ?: return ""
     val partes = mesAno.split("/".toRegex())
     return "${partes.getOrNull(1)}${mapMes[partes.getOrNull(0)]}"
   }
+
+  val quantVidaUtil: Int =
+    if (valorSaldoResidual == null || valorOriginal == 0.00 || valorTaxa == 0.00) 0
+    else
+      (12 * ((valorSaldoResidual / valorOriginal) / (valorTaxa / 100))).roundToInt()
 }
 
 data class ChaveAtivoPDF(
