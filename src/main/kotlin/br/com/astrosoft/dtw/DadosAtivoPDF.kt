@@ -10,6 +10,7 @@ val mapMes =
         "OUT" to "10", "NOV" to "11", "DEZ" to "12")
 
 data class DadosAtivoPDF(
+  val indice: Int,
   val pagina: Int,
   val codigoConta: String,
   val descricaoConta: String,
@@ -37,6 +38,9 @@ data class DadosAtivoPDF(
     if (valorSaldoResidual == null || valorOriginal == 0.00 || valorTaxa == 0.00) 0
     else
       (12 * ((valorSaldoResidual / valorOriginal) / (valorTaxa / 100))).roundToInt()
+  val quantVidaMeses : Int =
+    if(valorTaxa == 0.00) 0
+  else (12 / (valorTaxa/100)).roundToInt()
 }
 
 data class ChaveAtivoPDF(

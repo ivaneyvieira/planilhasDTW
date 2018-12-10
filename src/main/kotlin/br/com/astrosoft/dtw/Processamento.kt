@@ -7,6 +7,7 @@ import java.time.format.DateTimeFormatter
 
 class Processamento(val arquvioTXT: String) {
   val linhas = File(arquvioTXT).readLines()
+  private var index = 0
   private var pagina: Int = 0
   private var codigoConta: String = ""
   private var descricaoConta: String = ""
@@ -19,6 +20,7 @@ class Processamento(val arquvioTXT: String) {
   private val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 
   fun execute(): List<DadosAtivoPDF> {
+    index = 0
     val lista = ArrayList<DadosAtivoPDF>()
     linhas.forEach { linha ->
       processaLinha(linha).forEach { dados ->
@@ -60,6 +62,7 @@ class Processamento(val arquvioTXT: String) {
   private fun processaLinhaValoresGrid(linha: String): List<DadosAtivoPDF> {
     val partes = linha.split(" +".toRegex())
     val ativo1 = DadosAtivoPDF(
+      index++,
       pagina = pagina,
       codigoConta = codigoConta,
       descricaoConta = descricaoConta,
@@ -75,6 +78,7 @@ class Processamento(val arquvioTXT: String) {
       valorSaldoResidual = partes.getOrNull(3).toValor()
                               )
     val ativo2 = DadosAtivoPDF(
+      index++,
       pagina = pagina,
       codigoConta = codigoConta,
       descricaoConta = descricaoConta,

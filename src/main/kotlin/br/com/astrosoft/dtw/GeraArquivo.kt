@@ -9,11 +9,11 @@ import java.time.format.DateTimeFormatter
 
 class GeraArquivo(val arquvioZeroExcel: String, val arquvioNoZeroExcel: String) {
   fun execute(seqDados: List<DadosAtivoPDF>) {
-    val chaveZerada = seqDados.filter { it.mesAno == "DEZ/2017" && it.valorSaldoResidual == 0.00 }
+    val chaveNoZerada = seqDados.filter { it.mesAno == "DEZ/2017" && it.valorSaldoResidual != 0.00 }
       .map { ChaveAtivoPDF(it.codigoConta, it.codigoItem) }
       .distinct()
-    val dadosZerado = seqDados.filter { chaveZerada.contains(ChaveAtivoPDF(it.codigoConta, it.codigoItem)) }
-    val dadosNoZerado = seqDados.filter { !chaveZerada.contains(ChaveAtivoPDF(it.codigoConta, it.codigoItem)) }
+    val dadosZerado = seqDados.filter { !chaveNoZerada.contains(ChaveAtivoPDF(it.codigoConta, it.codigoItem)) }
+    val dadosNoZerado = seqDados.filter { chaveNoZerada.contains(ChaveAtivoPDF(it.codigoConta, it.codigoItem)) }
     produzArquivos(arquvioZeroExcel, dadosZerado)
     produzArquivos(arquvioNoZeroExcel, dadosNoZerado)
   }
@@ -47,6 +47,9 @@ class GeraArquivo(val arquvioZeroExcel: String, val arquvioNoZeroExcel: String) 
       Coluna("Vida útil",
              "Vida útil total",
              STRING) { it.valorTaxa.toInt().toString() },
+      Coluna("Vida útil",
+             "em meses",
+             STRING) { it.quantVidaMeses.toString() },
       Coluna("Vida útil restante",
              "Vida útil restante",
              STRING) { it.quantVidaUtil.toString() },
@@ -55,14 +58,21 @@ class GeraArquivo(val arquvioZeroExcel: String, val arquvioNoZeroExcel: String) 
              NUMERO) { it.valorOriginal.toStr() },
       Coluna("Depreciação acumulada normal",
              "Depreciação acumulada antes do exercício",
-             NUMERO) { it.valorDepAcum?.toStr() ?: "0" }/*,
+             NUMERO) { it.valorDepAcum?.toStr() ?: "0" },
+      Coluna("Valor Saldo Residual",
+             "Ultimo saldo residual",
+             NUMERO) { it.valorSaldoResidual?.toStr() ?: "0" },
+      Coluna("Ultimo Mes",
+             "Ultimo mes/ano",
+             STRING) { it.mesAno ?: "" }
+      /*,
       Coluna("taxa",
              "taxa",
              NUMERO) { it.valorTaxa.toStr() }*/
                         )
     val dadosArquivo = dados.groupBy { ChaveAtivoPDF(it.codigoConta, it.codigoItem) }
       .entries.mapNotNull { it.value.ordena().lastOrNull() }
-      .ordena()
+      .sortedBy { it.indice }
       .sequencial()
     val workbook = XSSFWorkbook()
     val createHelper = workbook.creationHelper
