@@ -70,7 +70,9 @@ class GeraArquivo(val arquvioZeroExcel: String, val arquvioNoZeroExcel: String) 
              "taxa",
              NUMERO) { it.valorTaxa.toStr() }*/
                         )
-    val dadosArquivo = dados.groupBy { ChaveAtivoPDF(it.codigoConta, it.codigoItem) }
+    val dadosArquivo = dados
+      .filter { !it.codigoConta.startsWith("1.3.2.1.") }
+      .groupBy { ChaveAtivoPDF(it.codigoConta, it.codigoItem) }
       .entries.mapNotNull { it.value.ordena().lastOrNull() }
       .sortedBy { it.indice }
       .sequencial()
