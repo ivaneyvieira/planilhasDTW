@@ -25,22 +25,22 @@ data class DadosAtivoPDF(
   val valorDepAcum: Double?,
   val valorSaldoResidual: Double?
                         ) {
-  val anoMes: String = anoMes()
   var sequencial: Int = 0
-
-  fun anoMes(): String {
-    mesAno ?: return ""
-    val partes = mesAno.split("/".toRegex())
-    return "${partes.getOrNull(1)}${mapMes[partes.getOrNull(0)]}"
-  }
+  val anoMes: String
+    get() {
+      mesAno ?: return ""
+      val partes = mesAno.split("/".toRegex())
+      return "${partes.getOrNull(1)}${mapMes[partes.getOrNull(0)]}"
+    }
 
   val quantVidaUtil: Int =
     if (valorSaldoResidual == null || valorOriginal == 0.00 || valorTaxa == 0.00) 0
     else
       (12 * ((valorSaldoResidual / valorOriginal) / (valorTaxa / 100))).roundToInt()
-  val quantVidaMeses : Int =
-    if(valorTaxa == 0.00) 0
-  else (12 / (valorTaxa/100)).roundToInt()
+
+  val quantVidaMeses: Int =
+    if (valorTaxa == 0.00) 0
+    else (12 / (valorTaxa / 100)).roundToInt()
 }
 
 data class ChaveAtivoPDF(

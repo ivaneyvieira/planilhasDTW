@@ -34,7 +34,14 @@ class GeraArquivo(val arquvioZeroExcel: String, val arquvioNoZeroExcel: String) 
              STRING) { it.descricaoItem },
       Coluna("Código da Classe do ativo",
              "Veículos",
-             STRING) { DeParaAtivos.getCodigo(it.descricaoConta) ?: "" },
+             STRING) {
+        if(it.descricaoConta == "VALOR ORIGINAL GUINDASTES E PONTES ROLANTES")
+          println("Debug")
+        val codigo = DeParaAtivos.getByConta(it.codigoConta)?.padStart(4, '0') ?: ""
+        if(codigo == "")
+          println("Código: ${it.codigoConta} - ${it.descricaoConta}")
+        codigo
+      },
       Coluna("Data de incorporação",
              "Aquisição",
              STRING) { it.dataEntrada.toStr() },
@@ -61,10 +68,10 @@ class GeraArquivo(val arquvioZeroExcel: String, val arquvioNoZeroExcel: String) 
              NUMERO) { it.valorDepAcum?.toStr() ?: "0" },
       Coluna("Valor Saldo Residual",
              "Ultimo saldo residual",
-             NUMERO) { it.valorSaldoResidual?.toStr() ?: "0" },
+             NUMERO) { it.valorSaldoResidual?.toStr() ?: "0" }/*,
       Coluna("Ultimo Mes",
              "Ultimo mes/ano",
-             STRING) { it.mesAno ?: "" }
+             STRING) { it.mesAno ?: "" }*/
       /*,
       Coluna("taxa",
              "taxa",
