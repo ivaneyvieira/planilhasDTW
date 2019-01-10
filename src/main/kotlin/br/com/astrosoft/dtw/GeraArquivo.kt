@@ -7,19 +7,26 @@ import java.io.FileOutputStream
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-class GeraArquivo(val arquvioZeroExcel: String, val arquvioNoZeroExcel: String, val arquvioExcel : String) {
+class GeraArquivo(val arquvioExcel: String) {
   fun execute(seqDados: List<DadosAtivoPDF>) {
     val chaveNoZerada = seqDados.filter { it.mesAno == "DEZ/2017" && it.valorSaldoResidual != 0.00 }
       .map { ChaveAtivoPDF(it.codigoConta, it.codigoItem) }
       .distinct()
-    val dadosZerado = seqDados.filter { !chaveNoZerada.contains(ChaveAtivoPDF(it.codigoConta, it.codigoItem)) }
-    val dadosNoZerado = seqDados.filter { chaveNoZerada.contains(ChaveAtivoPDF(it.codigoConta, it.codigoItem)) }
-    produzArquivos(arquvioZeroExcel, dadosZerado)
-    produzArquivos(arquvioNoZeroExcel, dadosNoZerado)
-    produzArquivos(arquvioExcel, seqDados)
+    //produzArquivos(arquvioZeroExcel, dadosZerado)
+    //produzArquivos(arquvioNoZeroExcel, dadosNoZerado)
+    //produzArquivos(arquvioExcel, seqDados)
+    seqDados.filter { !it.codigoConta.startsWith("1.3.2.1.") }
+      .map { it.codigo }.distinct().forEach { codigo ->
+      val dados = seqDados.filter { it.codigo == codigo }
+        val dadosZerado = dados.filter { !chaveNoZerada.contains(ChaveAtivoPDF(it.codigoConta, it.codigoItem)) }
+        val dadosNoZerado = dados.filter { chaveNoZerada.contains(ChaveAtivoPDF(it.codigoConta, it.codigoItem)) }
+        produzArquivos("${arquvioExcel}Zero-$codigo.xlsx", dadosZerado)
+        produzArquivos("${arquvioExcel}NOZero-$codigo.xlsx", dadosNoZerado)
+    }
   }
 
   private fun produzArquivos(arquvioExcel: String, dados: List<DadosAtivoPDF>) {
+    if(dados.isEmpty()) return
     val colunas = listOf(
       Coluna("Nº do item",
              "Nº do ativo",
@@ -35,12 +42,7 @@ class GeraArquivo(val arquvioZeroExcel: String, val arquvioNoZeroExcel: String, 
              STRING) { it.descricaoItem },
       Coluna("Código da Classe do ativo",
              "Veículos",
-             STRING) {
-        val codigo = DeParaAtivos.getByConta(it.codigoConta)?.padStart(4, '0') ?: ""
-        if (codigo == "")
-          println("Código: ${it.codigoConta} - ${it.descricaoConta}")
-        codigo
-      },
+             STRING) { it.codigo },
       Coluna("Data de incorporação",
              "Aquisição",
              STRING) { it.dataEntrada.toStr() },
@@ -67,16 +69,15 @@ class GeraArquivo(val arquvioZeroExcel: String, val arquvioNoZeroExcel: String, 
              NUMERO) { it.valorDepAcum?.toStr() ?: "0" },
       Coluna("Valor Saldo Residual",
              "Ultimo saldo residual",
-             NUMERO) { it.valorSaldoResidual?.toStr() ?: "0" },
+             NUMERO) { it.valorSaldoResidual?.toStr() ?: "0" }/*,
       Coluna("Ultimo Mes",
              "Ultimo mes/ano",
              STRING) { it.mesAno ?: "" },
       Coluna("taxa",
              "taxa",
-             NUMERO) { it.valorTaxa.toStr() }
+             NUMERO) { it.valorTaxa.toStr() }*/
                         )
     val dadosArquivo = dados
-      .filter { !it.codigoConta.startsWith("1.3.2.1.") }
       .groupBy { ChaveAtivoPDF(it.codigoConta, it.codigoItem) }
       .entries.mapNotNull { it.value.ordena().lastOrNull() }
       .sortedBy { it.indice }

@@ -32,15 +32,17 @@ data class DadosAtivoPDF(
       val partes = mesAno.split("/".toRegex())
       return "${partes.getOrNull(1)}${mapMes[partes.getOrNull(0)]}"
     }
-
   val quantVidaUtil: Int =
     if (valorSaldoResidual == null || valorOriginal == 0.00 || valorTaxa == 0.00) 0
     else
       (12 * ((valorSaldoResidual / valorOriginal) / (valorTaxa / 100))).roundToInt()
-
   val quantVidaMeses: Int =
     if (valorTaxa == 0.00) 0
     else (12 / (valorTaxa / 100)).roundToInt()
+  val codigo: String
+    get() {
+      return DeParaAtivos.getByConta(codigoConta)?.padStart(4, '0') ?: ""
+    }
 }
 
 data class ChaveAtivoPDF(

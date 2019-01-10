@@ -23,7 +23,7 @@ object DeParaAtivos {
       println("Conta 1.3.2.7.03.00001 ")
     val contaAtivo = listAtivos.find { it.conta == conta }
     if(contaAtivo == null)
-      println("Conta não encontrada")
+      println("Conta não encontrada $codigoConta")
     return contaAtivo?.codigo?.let {
       if (it == "") return null
       it
