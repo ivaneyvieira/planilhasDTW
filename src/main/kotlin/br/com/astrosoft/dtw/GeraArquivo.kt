@@ -7,7 +7,7 @@ import java.io.FileOutputStream
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-class GeraArquivo(val arquvioZeroExcel: String, val arquvioNoZeroExcel: String) {
+class GeraArquivo(val arquvioZeroExcel: String, val arquvioNoZeroExcel: String, val arquvioExcel : String) {
   fun execute(seqDados: List<DadosAtivoPDF>) {
     val chaveNoZerada = seqDados.filter { it.mesAno == "DEZ/2017" && it.valorSaldoResidual != 0.00 }
       .map { ChaveAtivoPDF(it.codigoConta, it.codigoItem) }
@@ -16,6 +16,7 @@ class GeraArquivo(val arquvioZeroExcel: String, val arquvioNoZeroExcel: String) 
     val dadosNoZerado = seqDados.filter { chaveNoZerada.contains(ChaveAtivoPDF(it.codigoConta, it.codigoItem)) }
     produzArquivos(arquvioZeroExcel, dadosZerado)
     produzArquivos(arquvioNoZeroExcel, dadosNoZerado)
+    produzArquivos(arquvioExcel, seqDados)
   }
 
   private fun produzArquivos(arquvioExcel: String, dados: List<DadosAtivoPDF>) {
@@ -35,10 +36,8 @@ class GeraArquivo(val arquvioZeroExcel: String, val arquvioNoZeroExcel: String) 
       Coluna("Código da Classe do ativo",
              "Veículos",
              STRING) {
-        if(it.descricaoConta == "VALOR ORIGINAL GUINDASTES E PONTES ROLANTES")
-          println("Debug")
         val codigo = DeParaAtivos.getByConta(it.codigoConta)?.padStart(4, '0') ?: ""
-        if(codigo == "")
+        if (codigo == "")
           println("Código: ${it.codigoConta} - ${it.descricaoConta}")
         codigo
       },
@@ -68,14 +67,13 @@ class GeraArquivo(val arquvioZeroExcel: String, val arquvioNoZeroExcel: String) 
              NUMERO) { it.valorDepAcum?.toStr() ?: "0" },
       Coluna("Valor Saldo Residual",
              "Ultimo saldo residual",
-             NUMERO) { it.valorSaldoResidual?.toStr() ?: "0" }/*,
+             NUMERO) { it.valorSaldoResidual?.toStr() ?: "0" },
       Coluna("Ultimo Mes",
              "Ultimo mes/ano",
-             STRING) { it.mesAno ?: "" }*/
-      /*,
+             STRING) { it.mesAno ?: "" },
       Coluna("taxa",
              "taxa",
-             NUMERO) { it.valorTaxa.toStr() }*/
+             NUMERO) { it.valorTaxa.toStr() }
                         )
     val dadosArquivo = dados
       .filter { !it.codigoConta.startsWith("1.3.2.1.") }
