@@ -3,6 +3,7 @@ package br.com.astrosoft.dtw
 import br.com.astrosoft.dtw.ETipo.NUMERO
 import br.com.astrosoft.dtw.ETipo.STRING
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
+import java.io.File
 import java.io.FileOutputStream
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -15,18 +16,25 @@ class GeraArquivo(val arquvioExcel: String) {
     //produzArquivos(arquvioZeroExcel, dadosZerado)
     //produzArquivos(arquvioNoZeroExcel, dadosNoZerado)
     //produzArquivos(arquvioExcel, seqDados)
-    seqDados.filter { !it.codigoConta.startsWith("1.3.2.1.") }
-      .map { it.codigo }.distinct().forEach { codigo ->
-      val dados = seqDados.filter { it.codigo == codigo }
+    var i = 0
+    val dadosArquivo = seqDados
+      .filter { !it.codigoConta.startsWith("1.3.2.1.") }
+      .groupBy { ChaveAtivoPDF(it.codigoConta, it.codigoItem) }
+      .entries.mapNotNull { it.value.ordena().lastOrNull() }
+      .sortedBy { it.codigo }
+      .sequencial()
+    dadosArquivo
+      .map { it.codigo }.sorted().distinct().forEach { codigo ->
+        val dados = dadosArquivo.filter { it.codigo == codigo }.sortedBy { it.sequencial }
         val dadosZerado = dados.filter { !chaveNoZerada.contains(ChaveAtivoPDF(it.codigoConta, it.codigoItem)) }
         val dadosNoZerado = dados.filter { chaveNoZerada.contains(ChaveAtivoPDF(it.codigoConta, it.codigoItem)) }
-        produzArquivos("${arquvioExcel}Zero-$codigo.xlsx", dadosZerado)
-        produzArquivos("${arquvioExcel}NOZero-$codigo.xlsx", dadosNoZerado)
-    }
+        produzArquivosTxt("${arquvioExcel}-${i++.toString().padStart(3, '0')}-Zero-$codigo.txt", dadosZerado)
+        produzArquivosTxt("${arquvioExcel}-${i++.toString().padStart(3, '0')}-NOZero-$codigo.txt", dadosNoZerado)
+      }
   }
 
   private fun produzArquivos(arquvioExcel: String, dados: List<DadosAtivoPDF>) {
-    if(dados.isEmpty()) return
+    if (dados.isEmpty()) return
     val colunas = listOf(
       Coluna("Nº do item",
              "Nº do ativo",
@@ -123,6 +131,76 @@ class GeraArquivo(val arquvioExcel: String) {
     workbook.write(fileOut)
     fileOut.close()
     workbook.close()
+  }
+
+  private fun produzArquivosTxt(arquivoTexto: String, dados: List<DadosAtivoPDF>) {
+    val colunas = listOf(
+      Coluna("Nº do item",
+             "Nº do ativo",
+             STRING) { "AT" + "${it.sequencial + 11}".padStart(5, '0') },
+      Coluna("Itens já cadastrados no SAP",
+             "Itens já cadastrados no SAP",
+             STRING) { "" },
+      Coluna("Descrição do item",
+             "Descrição do item",
+             STRING) { it.descricaoItem },
+      Coluna("Descrição em língua estrangeira",
+             "Descrição do ativo",
+             STRING) { it.descricaoItem },
+      Coluna("Código da Classe do ativo",
+             "Veículos",
+             STRING) { it.codigo },
+      Coluna("Data de incorporação",
+             "Aquisição",
+             STRING) { it.dataEntrada.toStr() },
+      Coluna("Código Área de depreciação",
+             "Cód. do plano de depreciação",
+             STRING) { it.descricaoConta },
+      Coluna("Data de início da depreciação",
+             "Geralmente é a data de aquisição",
+             STRING) { it.dataEntrada.toStr() },
+      //     Coluna("Vida útil",
+      //          "Vida útil total",
+      //        STRING) { it.valorTaxa.toInt().toString() },
+      Coluna("Vida útil",
+             "em meses",
+             STRING) { it.quantVidaMeses.toString() },
+      Coluna("Vida útil restante",
+             "Vida útil restante",
+             STRING) { it.quantVidaUtil.toString() },
+      Coluna("CAP",
+             "Custo de aquisição",
+             NUMERO) { it.valorOriginal.toStr() },
+      Coluna("Depreciação acumulada normal",
+             "Depreciação acumulada antes do exercício",
+             NUMERO) { it.valorDepAcum?.toStr() ?: "0" },
+      Coluna("Valor Saldo Residual",
+             "Ultimo saldo residual",
+             NUMERO) { it.valorSaldoResidual?.toStr() ?: "0" }/*,
+      Coluna("Ultimo Mes",
+             "Ultimo mes/ano",
+             STRING) { it.mesAno ?: "" },
+      Coluna("taxa",
+             "taxa",
+             NUMERO) { it.valorTaxa.toStr() }*/
+                        )
+
+
+
+    colunas.forEachIndexed { index, coluna ->
+    }
+    val linhas = dados.map { dado ->
+      colunas.joinToString(separator = "\t") { coluna ->
+        coluna.valor(dado)
+      }
+    }
+    val myfile = File(arquivoTexto)
+
+    myfile.printWriter().use { out ->
+      linhas.forEach { linha ->
+        out.println(linha)
+      }
+    }
   }
 }
 
