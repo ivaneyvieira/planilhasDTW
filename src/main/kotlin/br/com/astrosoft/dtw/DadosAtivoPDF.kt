@@ -1,6 +1,7 @@
 package br.com.astrosoft.dtw
 
 import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 import kotlin.math.roundToInt
 
 val mapMes =
@@ -32,11 +33,20 @@ data class DadosAtivoPDF(
       val partes = mesAno.split("/".toRegex())
       return "${partes.getOrNull(1)}${mapMes[partes.getOrNull(0)]}"
     }
-  val quantVidaUtil: Int =
-    if (valorSaldoResidual == null || valorOriginal == 0.00 || valorTaxa == 0.00) 0
-    else
-      (12 * ((valorSaldoResidual / valorOriginal) / (valorTaxa / 100))).roundToInt()
-  val quantVidaMeses: Int =
+  val quantVidaUtil: Int
+    get() {
+      val dataFinal = dataEntrada.plusMonths(quantVidaUtilTotalMeses.toLong())
+      val dataRef = LocalDate.of(2017, 12, 31)
+      val day = dataEntrada.dayOfMonth
+      val dif = ChronoUnit.MONTHS.between(dataRef, dataFinal).toInt() - if (day == 31) 1 else 0
+      return if (dif < 0) 0 else dif
+    }
+  /*
+      if (valorSaldoResidual == null || valorOriginal == 0.00 || valorTaxa == 0.00) 0
+      else
+        (12 * ((valorSaldoResidual / valorOriginal) / (valorTaxa / 100))).roundToInt()
+        */
+  val quantVidaUtilTotalMeses: Int =
     if (valorTaxa == 0.00) 0
     else (12 / (valorTaxa / 100)).roundToInt()
   val codigo: String
